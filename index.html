@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepSWE — Long-Horizon Software Engineering Benchmark</title>
+  <meta name="description" content="DeepSWE is a long-horizon software engineering benchmark that measures frontier coding agents on original, contamination-free tasks spanning 91 repositories across 5 languages.">
+  <meta name="keywords" content="DeepSWE, software engineering benchmark, coding agents, AI benchmark, SWE-bench, long-horizon tasks, frontier models, coding performance">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="favicon.svg">
+  <meta property="og:title" content="DeepSWE — Long-Horizon Software Engineering Benchmark">
+  <meta property="og:description" content="Measuring frontier coding agents on original, long-horizon engineering tasks across 91 repositories and 5 languages.">
+  <meta property="og:image" content="logo.svg">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="DeepSWE — Long-Horizon Software Engineering Benchmark">
+  <meta name="twitter:description" content="Measuring frontier coding agents on original, long-horizon engineering tasks across 91 repositories and 5 languages.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0f;
+      --bg-secondary: #111118;
+      --bg-card: #16161f;
+      --bg-hover: #1e1e2a;
+      --border: #1e1e2e;
+      --border-hover: #2e2e44;
+      --text: #e4e4ed;
+      --text-secondary: #8888a0;
+      --text-tertiary: #5c5c78;
+      --accent: #6366f1;
+      --accent-hover: #818cf8;
+      --accent-dim: rgba(99, 102, 241, 0.12);
+      --green: #22c55e;
+      --green-dim: rgba(34, 197, 94, 0.1);
+      --orange: #f59e0b;
+      --orange-dim: rgba(245, 158, 11, 0.1);
+      --blue: #06b6d4;
+      --radius: 10px;
+      --radius-sm: 6px;
+      --radius-lg: 14px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); }
+
+    /* Layout */
+    .page {
+      display: flex;
+      min-height: 100vh;
+    }
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      padding: 32px 20px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 36px;
+    }
+    .sidebar-logo img {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+    }
+    .sidebar-logo span {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+    }
+    .sidebar-nav a {
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 450;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      transition: all 0.15s;
+    }
+    .sidebar-nav a:hover {
+      color: var(--text);
+      background: var(--bg-hover);
+    }
+    .sidebar-nav a.active {
+      color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .sidebar-footer {
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+    .main {
+      flex: 1;
+      max-width: 960px;
+      padding: 48px 64px 80px;
+    }
+
+    /* Hero */
+    .hero {
+      margin-bottom: 56px;
+    }
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 100px;
+      margin-bottom: 16px;
+      letter-spacing: 0.2px;
+    }
+    .hero h1 {
+      font-size: 40px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      font-size: 16px;
+      color: var(--text-secondary);
+      max-width: 640px;
+      line-height: 1.7;
+      margin-bottom: 28px;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 550;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: none;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      border-color: var(--border-hover);
+      color: var(--text);
+      background: var(--bg-hover);
+    }
+
+    /* Section */
+    .section { margin-bottom: 56px; }
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .section-header h2 {
+      font-size: 20px;
+      font-weight: 650;
+      letter-spacing: -0.3px;
+    }
+    .section-header .count {
+      font-size: 13px;
+      color: var(--text-tertiary);
+      font-weight: 450;
+    }
+
+    /* Feature cards — 4-column grid */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: all 0.15s;
+    }
+    .feature-card:hover { border-color: var(--border-hover); }
+    .feature-card .icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .feature-card h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .feature-card p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+    .icon-accent { background: var(--accent-dim); color: var(--accent); }
+    .icon-green { background: var(--green-dim); color: var(--green); }
+    .icon-orange { background: var(--orange-dim); color: var(--orange); }
+
+    /* Leaderboard */
+    .leaderboard {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .leaderboard-header {
+      display: grid;
+      grid-template-columns: 48px 1fr 120px 100px;
+      padding: 12px 20px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 550;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .leaderboard-row {
+      display: grid;
+      grid-template-columns: 48px 1fr 120px 100px;
+      padding: 14px 20px;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      transition: background 0.1s;
+    }
+    .leaderboard-row:last-child { border-bottom: none; }
+    .leaderboard-row:hover { background: var(--bg-hover); }
+    .lb-rank { color: var(--text-tertiary); font-weight: 500; }
+    .lb-model {
+      font-weight: 550;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .lb-model .badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--bg-hover);
+      color: var(--text-tertiary);
+      font-weight: 500;
+    }
+    .lb-score {
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .lb-bar {
+      height: 6px;
+      border-radius: 3px;
+      background: var(--bg-hover);
+      flex: 1;
+      min-width: 60px;
+    }
+    .lb-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.6s ease;
+    }
+    .lb-ci { font-size: 12px; color: var(--text-tertiary); font-weight: 450; }
+    .lb-rank-1 .lb-bar-fill { background: var(--accent); }
+    .lb-rank-2 .lb-bar-fill { background: #818cf8; }
+    .lb-rank-3 .lb-bar-fill { background: #a78bfa; }
+    .lb-other .lb-bar-fill { background: var(--border-hover); }
+
+    .leaderboard-footnote {
+      padding: 12px 20px;
+      font-size: 12px;
+      color: var(--text-tertiary);
+      border-top: 1px solid var(--border);
+      background: var(--bg-secondary);
+    }
+
+    /* Task examples */
+    .tasks {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .task-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      transition: all 0.15s;
+    }
+    .task-card:hover { border-color: var(--border-hover); }
+    .task-card .task-title {
+      font-size: 14px;
+      font-weight: 550;
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+    .task-card .task-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    .task-meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .task-meta span {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 100px;
+      background: var(--bg-hover);
+      color: var(--text-tertiary);
+    }
+    .task-lang {
+      font-weight: 550;
+    }
+    .task-lang.ts { color: #3178c6; }
+    .task-lang.go { color: #00add8; }
+    .task-lang.rs { color: #dea584; }
+    .task-lang.js { color: #f7df1e; }
+    .task-lang.py { color: #3776ab; }
+
+    /* How it works / numbered steps */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .step {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      position: relative;
+    }
+    .step-number {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent);
+      opacity: 0.3;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .step h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .step p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    /* Blog outline */
+    .blog-outline {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .blog-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      gap: 14px;
+      transition: background 0.1s;
+    }
+    .blog-item:last-child { border-bottom: none; }
+    .blog-item:hover { background: var(--bg-hover); }
+    .blog-num {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-tertiary);
+      min-width: 28px;
+    }
+    .blog-label {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .blog-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 48px 0;
+    }
+
+    /* Numbered stat block */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+    .stat {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* Call to action */
+    .cta-box {
+      background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(6,182,212,0.08));
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      text-align: center;
+    }
+    .cta-box h2 {
+      font-size: 22px;
+      font-weight: 650;
+      margin-bottom: 10px;
+    }
+    .cta-box p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      .sidebar { display: none; }
+      .main { padding: 32px 24px 60px; max-width: 100%; }
+      .hero h1 { font-size: 32px; }
+      .features { grid-template-columns: 1fr; }
+      .tasks { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .leaderboard-header { grid-template-columns: 32px 1fr 80px; }
+      .leaderboard-row { grid-template-columns: 32px 1fr 80px; }
+      .lb-ci { display: none; }
+    }
+    @media (max-width: 480px) {
+      .stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <img src="logo.svg" alt="DeepSWE">
+        <span>DeepSWE</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#overview" class="active">Overview</a>
+        <a href="#leaderboard">Leaderboard</a>
+        <a href="#why">Why DeepSWE</a>
+        <a href="#how">How It Works</a>
+        <a href="#tasks">Task Examples</a>
+        <a href="#blog">Read the Blog</a>
+      </nav>
+      <div class="sidebar-footer">
+        <p>Long-horizon SWE benchmark</p>
+      </div>
+    </aside>
+    <main class="main">
+
+      <!-- Hero -->
+      <section class="hero" id="overview">
+        <div class="hero-tag">Long-Horizon SWE Benchmark</div>
+        <h1>Measuring frontier coding agents on <span>original</span>, long-horizon engineering tasks</h1>
+        <p>DeepSWE is a contamination-free benchmark built to separate today's leading coding agents. Tasks are written from scratch across 91 repositories and 5 languages, with hand-written verifiers that test software behavior rather than implementation details.</p>
+        <div class="hero-actions">
+          <a href="https://mirofish.my/" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+            Run DeepSWE
+          </a>
+          <a href="#leaderboard" class="btn btn-secondary">
+            View Leaderboard
+          </a>
+        </div>
+      </section>
+
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value">91</div>
+          <div class="stat-label">Repositories</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">5</div>
+          <div class="stat-label">Languages</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">113</div>
+          <div class="stat-label">Tasks</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">5.5&times;</div>
+          <div class="stat-label">More Code per Task</div>
+        </div>
+      </div>
+
+      <!-- Why DeepSWE -->
+      <section class="section" id="why">
+        <div class="section-header">
+          <h2>Why DeepSWE</h2>
+        </div>
+        <div class="features">
+          <div class="feature-card">
+            <div class="icon icon-accent">C</div>
+            <h3>Contamination Free</h3>
+            <p>Tasks are written from scratch, not adapted from existing commits or PRs, so no model has seen the solution during pretraining.</p>
+          </div>
+          <div class="feature-card">
+            <div class="icon icon-green">D</div>
+            <h3>High Diversity</h3>
+            <p>Tasks span a broad pool of 91 repositories across 5 languages, covering real-world software engineering scenarios.</p>
+          </div>
+          <div class="feature-card">
+            <div class="icon icon-orange">R</div>
+            <h3>Real-World Complexity</h3>
+            <p>Prompts are roughly half the length of SWE-bench Pro's, yet solutions require 5.5&times; more code and ~2&times; more output tokens.</p>
+          </div>
+          <div class="feature-card">
+            <div class="icon icon-accent">V</div>
+            <h3>Reliable Verification</h3>
+            <p>Verifiers are hand-written to test software behavior rather than implementation details, ensuring accurate evaluation.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Leaderboard -->
+      <section class="section" id="leaderboard">
+        <div class="section-header">
+          <h2>Leaderboard</h2>
+          <span class="count">12 / 16 models</span>
+        </div>
+        <div class="leaderboard">
+          <div class="leaderboard-header">
+            <span>#</span>
+            <span>Model</span>
+            <span>Score</span>
+            <span></span>
+          </div>
+          <div class="leaderboard-row lb-rank-1">
+            <span class="lb-rank">1</span>
+            <span class="lb-model">gpt-5.5 <span class="badge">xhigh</span></span>
+            <span class="lb-score">70% <span class="lb-ci">&plusmn;4%</span></span>
+            <span><div class="lb-bar"><div class="lb-bar-fill" style="width:70%"></div></div></span>
+          </div>
+          <div class="leaderboard-row lb-rank-2">
+            <span class="lb-rank">2</span>
+            <span class="lb-model">gpt-5.4 <span class="badge">xhigh</span></span>
+            <span class="lb-score">56% <span class="lb-ci">&plusmn;5%</span></span>
+            <span><div class="lb-bar"><div class="lb-bar-fill" style="width:56%"></div></div></span>
+          </div>
+          <div class="leaderboard-row lb-rank-3">
+            <span class="lb-rank">3</span>
+            <span class="lb-model">claude-opus-4.7 <span class="badge">max</span></span>
+            <span class="lb-score">54% <span class="lb-ci">&plusmn;5%</span></span>
+            <span><div class="lb-bar"><div class="lb-bar-fill" style="width:54%"></div></div></span>
+          </div>
+          <div class="leaderboard-row lb-other">
+            <span class="lb-rank">4</span>
+            <span class="lb-model">claude-sonnet-4.6 <span class="badge">high</span></span>
+            <span class="lb-score">32% <span class="lb-ci">&plusmn;4%</span></span>
+            <span><div class="lb-bar"><div class="lb-bar-fill" style="width:32%"></div></div></span>
+          </div>
+          <div class="leaderboard-row lb-other">
+            <span class="lb-rank">5</span>
+            <span class="lb-model">gemini-3.5-flash <span class="badge">medium</span></span>
+            <span class="lb-score">28% <span class="lb-ci">&plusmn;4%</span></span>
+            <span><div class="lb-bar"><div class="lb-bar-fill" style="width:28%"></div></div></span>
+          </div>
+          <div class="leaderboard-row lb-other">
+            <span class="lb-rank">6</span>
+            <span class="lb-model">gpt-5.4-mini <span class="badge">xhigh</span></span>
+            <span class="lb-score">24% <span class="lb-ci">&plusmn;4%</span></span>
+            <span><div class="lb-bar"><div class="lb-bar-fill" style="width:24%"></div></div></span>
+          </div>
+          <div class="leaderboard-row lb-other">
+            <span class="lb-rank">7</span>
+            <span class="lb-model">kimi-k2.6</span>
+            <span class="lb-score">24% <span class="lb-ci">&plusmn;4%</span></span>
+            <span><div class="lb-bar"><div class="lb-bar-fill" style="width:24%"></div></div></span>
+          </div>
+          <div class="leaderboard-row lb-other">
+            <span class="lb-rank">8</span>
+            <span class="lb-model">mimo-v2.5-pro</span>
+            <span class="lb-score">19% <span class="lb-ci">&plusmn;4%</span></span>
+            <span><div class="lb-bar"><div class="lb-bar-fill" style="width:19%"></div></div></span>
+          </div>
+          <div class="leaderboard-row lb-other">
+            <span class="lb-rank">9</span>
+            <span class="lb-model">glm-5.1</span>
+            <span class="lb-score">18% <span class="lb-ci">&plusmn;4%</span></span>
+            <span><div class="lb-bar"><div class="lb-bar-fill" style="width:18%"></div></div></span>
+          </div>
+          <div class="leaderboard-row lb-other">
+            <span class="lb-rank">10</span>
+            <span class="lb-model">gemini-3.1-pro</span>
+            <span class="lb-score">10% <span class="lb-ci">&plusmn;3%</span></span>
+            <span><div class="lb-bar"><div class="lb-bar-fill" style="width:10%"></div></div></span>
+          </div>
+          <div class="leaderboard-row lb-other">
+            <span class="lb-rank">11</span>
+            <span class="lb-model">deepseek-v4-pro</span>
+            <span class="lb-score">8% <span class="lb-ci">&plusmn;2%</span></span>
+            <span><div class="lb-bar"><div class="lb-bar-fill" style="width:8%"></div></div></span>
+          </div>
+          <div class="leaderboard-row lb-other">
+            <span class="lb-rank">12</span>
+            <span class="lb-model">gemini-3-flash</span>
+            <span class="lb-score">5% <span class="lb-ci">&plusmn;2%</span></span>
+            <span><div class="lb-bar"><div class="lb-bar-fill" style="width:5%"></div></div></span>
+          </div>
+          <div class="leaderboard-footnote">
+            All models are run with mini-swe-agent
+          </div>
+        </div>
+      </section>
+
+      <!-- How It Works -->
+      <section class="section" id="how">
+        <div class="section-header">
+          <h2>How DeepSWE Works</h2>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-number">01</div>
+            <h3>Task Authorship</h3>
+            <p>Each task is written from scratch by expert engineers. No adaptation from existing commits or PRs ensures zero contamination in model training data.</p>
+          </div>
+          <div class="step">
+            <div class="step-number">02</div>
+            <h3>Multi-Repository Sampling</h3>
+            <p>Tasks are drawn from 91 diverse repositories across TypeScript, Go, Rust, JavaScript, and Python, covering real-world codebases.</p>
+          </div>
+          <div class="step">
+            <div class="step-number">03</div>
+            <h3>Agent Execution</h3>
+            <p>Frontier coding agents receive the task prompt and generate a solution. Prompts are concise while solutions demand significant code output.</p>
+          </div>
+          <div class="step">
+            <div class="step-number">04</div>
+            <h3>Behavioral Verification</h3>
+            <p>Hand-written verifiers test whether the software behaves correctly, independent of implementation specifics, ensuring reliable scoring.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Task Examples -->
+      <section class="section" id="tasks">
+        <div class="section-header">
+          <h2>Task Examples</h2>
+          <span class="count">113 total tasks</span>
+        </div>
+        <div class="tasks">
+          <div class="task-card">
+            <div class="task-title">Abort pending body reads on shutdown</div>
+            <div class="task-desc">Ensure interrupted request and response body reads, formData parsing, and discarded timers abort cleanly during shutdown.</div>
+            <div class="task-meta">
+              <span>capricorn86/happy-dom</span>
+              <span class="task-lang ts">TypeScript</span>
+            </div>
+          </div>
+          <div class="task-card">
+            <div class="task-title">Fix PromQL label sorting across typed and untyped values</div>
+            <div class="task-desc">PromQL label sorting must order mixed typed and untyped label values with stable typed comparison rules.</div>
+            <div class="task-meta">
+              <span>prometheus/prometheus</span>
+              <span class="task-lang go">Go</span>
+            </div>
+          </div>
+          <div class="task-card">
+            <div class="task-title">Add config file parsing to Cliffy commands</div>
+            <div class="task-desc">Add command-level config file loading, parsing, merging, and precedence handling.</div>
+            <div class="task-meta">
+              <span>c4spar/cliffy</span>
+              <span class="task-lang ts">TypeScript</span>
+            </div>
+          </div>
+          <div class="task-card">
+            <div class="task-title">Add deterministic map conflict detection to Y.Map writes</div>
+            <div class="task-desc">Add strict, deterministic conflict detection for Y.Map key writes with collect and error policies.</div>
+            <div class="task-meta">
+              <span>yjs/yjs</span>
+              <span class="task-lang js">JavaScript</span>
+            </div>
+          </div>
+          <div class="task-card">
+            <div class="task-title">Add trap coredump generation to wasmi</div>
+            <div class="task-desc">Generate opt-in Wasm coredumps on traps and attach the bytes to errors.</div>
+            <div class="task-meta">
+              <span>wasmi-labs/wasmi</span>
+              <span class="task-lang rs">Rust</span>
+            </div>
+          </div>
+          <div class="task-card">
+            <div class="task-title">Add XML diff, patch, and merge operations to etree</div>
+            <div class="task-desc">Add recursive XML diffing, patch generation and application, reverse patching, three-way merge, and diff summaries.</div>
+            <div class="task-meta">
+              <span>beevik/etree</span>
+              <span class="task-lang go">Go</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Blog -->
+      <section class="section" id="blog">
+        <div class="section-header">
+          <h2>Read the Full Blog</h2>
+        </div>
+        <div class="blog-outline">
+          <div class="blog-item">
+            <span class="blog-num">01</span>
+            <span class="blog-label">Introduction</span>
+            <span class="blog-desc">Why a new benchmark</span>
+          </div>
+          <div class="blog-item">
+            <span class="blog-num">02</span>
+            <span class="blog-label">Overview</span>
+            <span class="blog-desc">What separates DeepSWE</span>
+          </div>
+          <div class="blog-item">
+            <span class="blog-num">03</span>
+            <span class="blog-label">Methodology</span>
+            <span class="blog-desc">How tasks and verifiers are built</span>
+          </div>
+          <div class="blog-item">
+            <span class="blog-num">04</span>
+            <span class="blog-label">Results</span>
+            <span class="blog-desc">Where frontier models diverge</span>
+          </div>
+          <div class="blog-item">
+            <span class="blog-num">05</span>
+            <span class="blog-label">Qualitative Analysis</span>
+            <span class="blog-desc">How each frontier model fails</span>
+          </div>
+          <div class="blog-item">
+            <span class="blog-num">06</span>
+            <span class="blog-label">Limitations &amp; Future Work</span>
+            <span class="blog-desc">What we'd do differently</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- CTA -->
+      <section class="cta-box">
+        <h2>Ready to benchmark your agent?</h2>
+        <p>Run DeepSWE against your frontier coding model and see how it compares on original, long-horizon engineering tasks.</p>
+        <a href="https://mirofish.my/" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+          Run DeepSWE
+        </a>
+      </section>
+
+    </main>
+  </div>
+</body>
+</html>
